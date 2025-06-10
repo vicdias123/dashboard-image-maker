@@ -1,5 +1,5 @@
 
-import { Bell } from "lucide-react";
+import { Bell, Scale } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const TopNavigation = () => {
