@@ -8,7 +8,12 @@ import Index from "./pages/Index";
 import Clientes from "./pages/Clientes";
 import Processos from "./pages/Processos";
 import Agenda from "./pages/Agenda";
+import Documentos from "./pages/Documentos";
 import Financeiro from "./pages/Financeiro";
+import Equipe from "./pages/Equipe";
+import Marketing from "./pages/Marketing";
+import Relatorios from "./pages/Relatorios";
+import Configuracoes from "./pages/Configuracoes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,13 +29,12 @@ const App = () => (
           <Route path="/clientes" element={<Clientes />} />
           <Route path="/processos" element={<Processos />} />
           <Route path="/agenda" element={<Agenda />} />
+          <Route path="/documentos" element={<Documentos />} />
           <Route path="/financeiro" element={<Financeiro />} />
-          {/* Placeholder routes for remaining pages */}
-          <Route path="/documentos" element={<div className="p-8 text-center">Página de Documentos em desenvolvimento</div>} />
-          <Route path="/equipe" element={<div className="p-8 text-center">Página de Equipe em desenvolvimento</div>} />
-          <Route path="/marketing" element={<div className="p-8 text-center">Página de Marketing em desenvolvimento</div>} />
-          <Route path="/relatorios" element={<div className="p-8 text-center">Página de Relatórios em desenvolvimento</div>} />
-          <Route path="/configuracoes" element={<div className="p-8 text-center">Página de Configurações em desenvolvimento</div>} />
+          <Route path="/equipe" element={<Equipe />} />
+          <Route path="/marketing" element={<Marketing />} />
+          <Route path="/relatorios" element={<Relatorios />} />
+          <Route path="/configuracoes" element={<Configuracoes />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
