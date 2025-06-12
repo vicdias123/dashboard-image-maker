@@ -9,6 +9,81 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cases: {
+        Row: {
+          avatar_url: string | null
+          case_value: string | null
+          client_id: string | null
+          client_name: string
+          court: string
+          created_at: string | null
+          created_by: string | null
+          distribution_date: string | null
+          id: string
+          legal_area: string
+          next_deadline: string | null
+          priority: string
+          process_number: string
+          responsible_lawyer: string
+          status: string
+          subject: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          case_value?: string | null
+          client_id?: string | null
+          client_name: string
+          court: string
+          created_at?: string | null
+          created_by?: string | null
+          distribution_date?: string | null
+          id?: string
+          legal_area: string
+          next_deadline?: string | null
+          priority?: string
+          process_number: string
+          responsible_lawyer: string
+          status?: string
+          subject: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          case_value?: string | null
+          client_id?: string | null
+          client_name?: string
+          court?: string
+          created_at?: string | null
+          created_by?: string | null
+          distribution_date?: string | null
+          id?: string
+          legal_area?: string
+          next_deadline?: string | null
+          priority?: string
+          process_number?: string
+          responsible_lawyer?: string
+          status?: string
+          subject?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cases_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cases_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: Json | null

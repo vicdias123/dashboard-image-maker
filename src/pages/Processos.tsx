@@ -1,60 +1,46 @@
 
-import { Search, SlidersHorizontal, Plus, Scale, Calendar, Clock, AlertTriangle } from "lucide-react";
+import { Search, SlidersHorizontal, Scale, Calendar, Clock, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Sidebar from "@/components/Sidebar";
 import TopNavigation from "@/components/TopNavigation";
+import { NewCaseDialog } from "@/components/NewCaseDialog";
+import { useQuery } from "@tanstack/react-query";
+import { getCases, getCasesStats } from "@/services/caseService";
+import { useState, useEffect } from "react";
 
 const Processos = () => {
-  const processos = [
-    {
-      id: 1,
-      numero: "5001234-67.2024.8.26.0001",
-      cliente: "Maria Silva Santos",
-      area: "Direito de Família",
-      assunto: "Ação de Divórcio Consensual",
-      tribunal: "TJSP - 1ª Vara de Família",
-      valorCausa: "R$ 150.000",
-      status: "Em Andamento",
-      prioridade: "Alta",
-      responsavel: "Dr. Vitor Dias",
-      dataDistribuicao: "15/01/2024",
-      proximoPrazo: "25/11/2024",
-      avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face"
-    },
-    {
-      id: 2,
-      numero: "1001567-89.2024.8.26.0100",
-      cliente: "João Carlos Oliveira",
-      area: "Direito Empresarial",
-      assunto: "Revisão de Contrato Comercial",
-      tribunal: "TJSP - 2ª Vara Empresarial",
-      valorCausa: "R$ 500.000",
-      status: "Análise Jurídica",
-      prioridade: "Média",
-      responsavel: "Dra. Ana Costa",
-      dataDistribuicao: "03/02/2024",
-      proximoPrazo: "30/11/2024",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face"
-    },
-    {
-      id: 3,
-      numero: "2001890-12.2024.8.26.0224",
-      cliente: "Empresa XYZ Ltda",
-      area: "Direito Tributário",
-      assunto: "Consultoria Tributária - ICMS",
-      tribunal: "TJSP - Vara da Fazenda Pública",
-      valorCausa: "R$ 1.200.000",
-      status: "Aguardando Documentos",
-      prioridade: "Alta",
-      responsavel: "Dr. Roberto Silva",
-      dataDistribuicao: "10/03/2024",
-      proximoPrazo: "13/11/2024",
-      avatar: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=40&h=40&fit=crop&crop=face"
+  // Queries para buscar dados do Supabase
+  const { data: cases = [], isLoading: casesLoading, error: casesError } = useQuery({
+    queryKey: ['cases'],
+    queryFn: getCases,
+  });
+
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    queryKey: ['cases-stats'],
+    queryFn: getCasesStats,
+  });
+
+  // Estado para busca
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Log para debug
+  useEffect(() => {
+    console.log('Casos carregados:', cases);
+    console.log('Estatísticas:', stats);
+    if (casesError) {
+      console.error('Erro ao carregar casos:', casesError);
     }
-  ];
+  }, [cases, stats, casesError]);
+
+  // Filtrar casos baseado na busca
+  const filteredCases = cases.filter(caso => 
+    caso.process_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    caso.client_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    caso.subject.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -76,6 +62,12 @@ const Processos = () => {
     }
   };
 
+  // Função para formatar data
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "";
+    return new Date(dateString).toLocaleDateString('pt-BR');
+  };
+
   return (
     <div className="min-h-screen bg-accent/30 flex">
       <Sidebar />
@@ -94,7 +86,12 @@ const Processos = () => {
               <div className="flex items-center gap-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
-                  <Input className="pl-10 w-64" placeholder="Buscar por número, cliente..." />
+                  <Input 
+                    className="pl-10 w-64" 
+                    placeholder="Buscar por número, cliente..." 
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
                 
                 <Button variant="outline" size="sm">
@@ -102,10 +99,7 @@ const Processos = () => {
                   Filtros
                 </Button>
                 
-                <Button className="bg-primary hover:bg-primary/90">
-                  <Plus size={16} className="mr-2" />
-                  Novo Processo
-                </Button>
+                <NewCaseDialog />
               </div>
             </div>
 
@@ -116,7 +110,9 @@ const Processos = () => {
                   <Scale className="w-8 h-8 text-primary" />
                   <span className="text-sm text-green-600 font-medium">+10%</span>
                 </div>
-                <h3 className="text-2xl font-bold text-foreground mb-1">125</h3>
+                <h3 className="text-2xl font-bold text-foreground mb-1">
+                  {statsLoading ? "..." : stats?.active || 0}
+                </h3>
                 <p className="text-sm text-muted-foreground">Processos Ativos</p>
               </div>
               
@@ -125,7 +121,9 @@ const Processos = () => {
                   <Clock className="w-8 h-8 text-blue-600" />
                   <span className="text-sm text-green-600 font-medium">+5%</span>
                 </div>
-                <h3 className="text-2xl font-bold text-foreground mb-1">15</h3>
+                <h3 className="text-2xl font-bold text-foreground mb-1">
+                  {statsLoading ? "..." : stats?.thisMonth || 0}
+                </h3>
                 <p className="text-sm text-muted-foreground">Novos este Mês</p>
               </div>
               
@@ -134,17 +132,21 @@ const Processos = () => {
                   <Calendar className="w-8 h-8 text-green-600" />
                   <span className="text-sm text-green-600 font-medium">+2%</span>
                 </div>
-                <h3 className="text-2xl font-bold text-foreground mb-1">8</h3>
+                <h3 className="text-2xl font-bold text-foreground mb-1">
+                  {statsLoading ? "..." : stats?.finished || 0}
+                </h3>
                 <p className="text-sm text-muted-foreground">Finalizados</p>
               </div>
               
               <div className="bg-card p-6 rounded-2xl border">
                 <div className="flex items-center justify-between mb-4">
                   <AlertTriangle className="w-8 h-8 text-red-600" />
-                  <span className="text-sm text-red-600 font-medium">5</span>
+                  <span className="text-sm text-red-600 font-medium">{statsLoading ? "..." : stats?.urgentDeadlines || 0}</span>
                 </div>
-                <h3 className="text-2xl font-bold text-foreground mb-1">12</h3>
-                <p className="text-sm text-muted-foreground">Prazos Urgentes</p>
+                <h3 className="text-2xl font-bold text-foreground mb-1">
+                  {statsLoading ? "..." : stats?.total || 0}
+                </h3>
+                <p className="text-sm text-muted-foreground">Total de Processos</p>
               </div>
             </div>
 
@@ -154,62 +156,92 @@ const Processos = () => {
                 <h2 className="text-lg font-semibold text-foreground">Lista de Processos</h2>
               </div>
               
-              <div className="divide-y">
-                {processos.map((processo) => (
-                  <div key={processo.id} className="p-6 hover:bg-accent/50 transition-colors">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4 flex-1">
-                        <Avatar className="w-12 h-12">
-                          <AvatarImage src={processo.avatar} />
-                          <AvatarFallback>{processo.cliente.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                        </Avatar>
-                        
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Scale className="w-4 h-4 text-primary" />
-                            <h3 className="font-semibold text-foreground">{processo.numero}</h3>
-                            <Badge className={`text-xs ${getPrioridadeColor(processo.prioridade)}`}>
-                              {processo.prioridade}
-                            </Badge>
-                          </div>
-                          
-                          <p className="text-sm font-medium text-foreground mb-1">{processo.assunto}</p>
-                          <p className="text-sm text-muted-foreground mb-2">{processo.cliente} • {processo.area}</p>
-                          
-                          <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
-                            <div>
-                              <span className="font-medium">Tribunal:</span> {processo.tribunal}
-                            </div>
-                            <div>
-                              <span className="font-medium">Responsável:</span> {processo.responsavel}
-                            </div>
-                            <div>
-                              <span className="font-medium">Valor da Causa:</span> {processo.valorCausa}
-                            </div>
-                            <div>
-                              <span className="font-medium">Distribuição:</span> {processo.dataDistribuicao}
-                            </div>
+              {casesLoading ? (
+                <div className="p-6">
+                  <div className="space-y-4">
+                    {Array.from({ length: 3 }).map((_, index) => (
+                      <div key={index} className="animate-pulse">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-accent rounded-full"></div>
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 bg-accent rounded w-3/4"></div>
+                            <div className="h-3 bg-accent rounded w-1/2"></div>
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center gap-4">
-                        <div className="text-center">
-                          <Badge className={`text-xs ${getStatusColor(processo.status)}`}>
-                            {processo.status}
-                          </Badge>
-                          <p className="text-xs text-muted-foreground mt-1">Próximo prazo</p>
-                          <p className="text-xs font-medium text-foreground">{processo.proximoPrazo}</p>
+                    ))}
+                  </div>
+                </div>
+              ) : casesError ? (
+                <div className="p-6 text-center text-red-600">
+                  Erro ao carregar processos. Tente novamente.
+                </div>
+              ) : filteredCases.length === 0 ? (
+                <div className="p-6 text-center text-muted-foreground">
+                  {searchTerm ? "Nenhum processo encontrado para a busca." : "Nenhum processo cadastrado ainda."}
+                </div>
+              ) : (
+                <div className="divide-y">
+                  {filteredCases.map((processo) => (
+                    <div key={processo.id} className="p-6 hover:bg-accent/50 transition-colors">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-4 flex-1">
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage src={processo.avatar_url || ""} />
+                            <AvatarFallback>{processo.client_name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                          </Avatar>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Scale className="w-4 h-4 text-primary" />
+                              <h3 className="font-semibold text-foreground">{processo.process_number}</h3>
+                              <Badge className={`text-xs ${getPrioridadeColor(processo.priority)}`}>
+                                {processo.priority}
+                              </Badge>
+                            </div>
+                            
+                            <p className="text-sm font-medium text-foreground mb-1">{processo.subject}</p>
+                            <p className="text-sm text-muted-foreground mb-2">{processo.client_name} • {processo.legal_area}</p>
+                            
+                            <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
+                              <div>
+                                <span className="font-medium">Tribunal:</span> {processo.court}
+                              </div>
+                              <div>
+                                <span className="font-medium">Responsável:</span> {processo.responsible_lawyer}
+                              </div>
+                              <div>
+                                <span className="font-medium">Valor da Causa:</span> {processo.case_value || "Não informado"}
+                              </div>
+                              <div>
+                                <span className="font-medium">Distribuição:</span> {formatDate(processo.distribution_date)}
+                              </div>
+                            </div>
+                          </div>
                         </div>
                         
-                        <Button variant="outline" size="sm">
-                          Ver Detalhes
-                        </Button>
+                        <div className="flex items-center gap-4">
+                          <div className="text-center">
+                            <Badge className={`text-xs ${getStatusColor(processo.status)}`}>
+                              {processo.status}
+                            </Badge>
+                            {processo.next_deadline && (
+                              <>
+                                <p className="text-xs text-muted-foreground mt-1">Próximo prazo</p>
+                                <p className="text-xs font-medium text-foreground">{formatDate(processo.next_deadline)}</p>
+                              </>
+                            )}
+                          </div>
+                          
+                          <Button variant="outline" size="sm">
+                            Ver Detalhes
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </main>
