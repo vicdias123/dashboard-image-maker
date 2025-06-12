@@ -1,5 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+
+// Usando o tipo diretamente do Supabase para garantir compatibilidade
+type ClientRow = Database['public']['Tables']['clients']['Row'];
 
 export interface Client {
   id: string;
@@ -7,13 +11,13 @@ export interface Client {
   email: string | null;
   phone: string | null;
   document_number: string | null;
-  client_type: 'individual' | 'company' | null;
+  client_type: string | null;
   address: any;
   notes: string | null;
   status: string | null;
   created_by: string | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface ClientStats {
@@ -37,7 +41,7 @@ export const getClients = async (): Promise<Client[]> => {
       throw error;
     }
 
-    return data || [];
+    return (data || []) as Client[];
   } catch (error) {
     console.error('Erro ao buscar clientes:', error);
     throw error;
@@ -102,7 +106,7 @@ export const createClient = async (clientData: Omit<Client, 'id' | 'created_at' 
       throw error;
     }
 
-    return data;
+    return data as Client;
   } catch (error) {
     console.error('Erro ao criar cliente:', error);
     throw error;
@@ -125,7 +129,7 @@ export const updateClient = async (id: string, clientData: Partial<Client>): Pro
       throw error;
     }
 
-    return data;
+    return data as Client;
   } catch (error) {
     console.error('Erro ao atualizar cliente:', error);
     throw error;
