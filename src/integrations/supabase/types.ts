@@ -458,7 +458,7 @@ export type Database = {
     }
     Functions: {
       get_client_projects: {
-        Args: { client_user_id: string }
+        Args: Record<PropertyKey, never> | { client_user_id: string }
         Returns: {
           client_id: string | null
           created_at: string | null
@@ -474,7 +474,7 @@ export type Database = {
         }[]
       }
       get_project_tasks: {
-        Args: { p_project_id: string }
+        Args: Record<PropertyKey, never> | { p_project_id: string }
         Returns: {
           assignee_id: string | null
           created_at: string | null
@@ -501,7 +501,7 @@ export type Database = {
         }[]
       }
       get_user_role: {
-        Args: { user_id_input: string }
+        Args: Record<PropertyKey, never> | { user_id_input: string }
         Returns: string
       }
     }

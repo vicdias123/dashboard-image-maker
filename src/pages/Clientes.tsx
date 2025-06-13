@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Search, SlidersHorizontal, Plus, Phone, Mail, MapPin } from "lucide-react";
+import { Search, SlidersHorizontal, Phone, Mail, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
 import Sidebar from "@/components/Sidebar";
 import TopNavigation from "@/components/TopNavigation";
+import NewClientDialog from "@/components/NewClientDialog";
 import { getClients, getClientStats, Client, ClientStats } from "@/services/clientService";
 
 const Clientes = () => {
@@ -122,10 +123,7 @@ const Clientes = () => {
                   Filtros
                 </Button>
                 
-                <Button className="bg-primary hover:bg-primary/90">
-                  <Plus size={16} className="mr-2" />
-                  Novo Cliente
-                </Button>
+                <NewClientDialog />
               </div>
             </div>
 
@@ -189,8 +187,13 @@ const Clientes = () => {
                 {filteredClients.length === 0 ? (
                   <div className="p-8 text-center">
                     <p className="text-muted-foreground">
-                      {searchTerm ? 'Nenhum cliente encontrado com os termos de busca.' : 'Nenhum cliente cadastrado.'}
+                      {searchTerm ? 'Nenhum cliente encontrado com os termos de busca.' : 'Nenhum cliente cadastrado ainda.'}
                     </p>
+                    {!searchTerm && (
+                      <div className="mt-4">
+                        <NewClientDialog />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   filteredClients.map((client: Client) => (
@@ -240,7 +243,7 @@ const Clientes = () => {
                           
                           <div className="text-center">
                             <Badge className={`text-xs ${getStatusColor(client.status)}`}>
-                              {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : client.status || 'Indefinido'}
+                              {client.status === 'active' ? 'Ativo' : client.status === 'inactive' ? 'Inativo' : client.status === 'prospect' ? 'Prospect' : 'Indefinido'}
                             </Badge>
                             <p className="text-xs text-muted-foreground mt-1">Desde {formatDate(client.created_at)}</p>
                           </div>
