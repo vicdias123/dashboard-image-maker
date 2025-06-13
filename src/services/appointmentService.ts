@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Appointment, AppointmentFormData } from '@/types/appointment';
+import { Appointment, AppointmentFormData, validateAndMapAppointment } from '@/types/appointment';
 
 export const getAppointments = async (
   startDate?: Date,
@@ -34,7 +34,8 @@ export const getAppointments = async (
       throw error;
     }
 
-    return data || [];
+    // Validar e mapear cada item usando a função de validação
+    return (data || []).map(validateAndMapAppointment);
   } catch (error) {
     console.error('Erro ao buscar compromissos:', error);
     throw error;
@@ -100,7 +101,8 @@ export const createAppointment = async (data: AppointmentFormData): Promise<Appo
       throw error;
     }
 
-    return newAppointment;
+    // Validar e mapear o resultado usando a função de validação
+    return validateAndMapAppointment(newAppointment);
   } catch (error) {
     console.error('Erro ao criar compromisso:', error);
     throw error;
@@ -133,7 +135,8 @@ export const updateAppointment = async (id: string, data: Partial<AppointmentFor
       throw error;
     }
 
-    return updatedAppointment;
+    // Validar e mapear o resultado usando a função de validação
+    return validateAndMapAppointment(updatedAppointment);
   } catch (error) {
     console.error('Erro ao atualizar compromisso:', error);
     throw error;
