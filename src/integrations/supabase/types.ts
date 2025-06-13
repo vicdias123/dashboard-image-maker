@@ -9,6 +9,81 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          appointment_type: string
+          assigned_to: string | null
+          assigned_to_name: string | null
+          case_id: string | null
+          client_id: string | null
+          client_name: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          end_time: string
+          id: string
+          is_confirmed: boolean | null
+          location: string | null
+          reminder_sent: boolean | null
+          start_time: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          appointment_type: string
+          assigned_to?: string | null
+          assigned_to_name?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_time: string
+          id?: string
+          is_confirmed?: boolean | null
+          location?: string | null
+          reminder_sent?: boolean | null
+          start_time: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          appointment_type?: string
+          assigned_to?: string | null
+          assigned_to_name?: string | null
+          case_id?: string | null
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_time?: string
+          id?: string
+          is_confirmed?: boolean | null
+          location?: string | null
+          reminder_sent?: boolean | null
+          start_time?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_case_id_fkey"
+            columns: ["case_id"]
+            isOneToOne: false
+            referencedRelation: "cases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cases: {
         Row: {
           avatar_url: string | null

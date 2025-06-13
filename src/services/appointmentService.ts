@@ -2,50 +2,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Appointment, AppointmentFormData } from '@/types/appointment';
 
-// Dados simulados para desenvolvimento
-const mockAppointments: Appointment[] = [
-  {
-    id: '1',
-    title: 'Audiência Criminal',
-    description: 'Audiência de instrução e julgamento no Tribunal de Justiça',
-    appointment_type: 'hearing',
-    start_time: new Date().toISOString(),
-    end_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // +2 horas
-    location: 'Fórum Central - Sala 205',
-    case_id: 'case-1',
-    case_title: 'Processo Criminal 123/2024',
-    client_id: 'client-1',
-    client_name: 'João Silva',
-    assigned_to: 'lawyer-1',
-    assigned_to_name: 'Dr. Maria Santos',
-    is_confirmed: true,
-    reminder_sent: false,
-    created_by: 'user-1',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  },
-  {
-    id: '2',
-    title: 'Reunião com Cliente',
-    description: 'Discussão sobre estratégia processual',
-    appointment_type: 'meeting',
-    start_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // +1 dia
-    end_time: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
-    location: 'Escritório - Sala de Reuniões',
-    case_id: 'case-2',
-    case_title: 'Processo Trabalhista 456/2024',
-    client_id: 'client-2',
-    client_name: 'Ana Costa',
-    assigned_to: 'lawyer-2',
-    assigned_to_name: 'Dr. Carlos Lima',
-    is_confirmed: false,
-    reminder_sent: true,
-    created_by: 'user-1',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  }
-];
-
 export const getAppointments = async (
   startDate?: Date,
   endDate?: Date,
@@ -54,32 +10,34 @@ export const getAppointments = async (
   try {
     console.log('Buscando compromissos:', { startDate, endDate, userId });
     
-    // Por enquanto, retorna dados simulados
-    // TODO: Implementar consulta real quando as tabelas forem criadas
-    let filteredAppointments = mockAppointments;
+    let query = supabase
+      .from('appointments')
+      .select('*')
+      .order('start_time', { ascending: true });
 
     if (startDate) {
-      filteredAppointments = filteredAppointments.filter(
-        appointment => new Date(appointment.start_time) >= startDate
-      );
+      query = query.gte('start_time', startDate.toISOString());
     }
 
     if (endDate) {
-      filteredAppointments = filteredAppointments.filter(
-        appointment => new Date(appointment.start_time) <= endDate
-      );
+      query = query.lte('start_time', endDate.toISOString());
     }
 
     if (userId) {
-      filteredAppointments = filteredAppointments.filter(
-        appointment => appointment.assigned_to === userId
-      );
+      query = query.eq('assigned_to', userId);
     }
 
-    return filteredAppointments;
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Erro ao buscar compromissos:', error);
+      throw error;
+    }
+
+    return data || [];
   } catch (error) {
     console.error('Erro ao buscar compromissos:', error);
-    return mockAppointments; // Fallback para dados simulados
+    throw error;
   }
 };
 
@@ -116,9 +74,7 @@ export const createAppointment = async (data: AppointmentFormData): Promise<Appo
   try {
     console.log('Criando compromisso:', data);
     
-    // Por enquanto, simula a criação
-    const newAppointment: Appointment = {
-      id: `appointment-${Date.now()}`,
+    const appointmentData = {
       title: data.title,
       description: data.description,
       appointment_type: data.appointment_type,
@@ -126,21 +82,24 @@ export const createAppointment = async (data: AppointmentFormData): Promise<Appo
       end_time: data.end_time.toISOString(),
       location: data.location,
       case_id: data.case_id || null,
-      case_title: null,
       client_id: data.client_id || null,
-      client_name: null,
       assigned_to: data.assigned_to,
-      assigned_to_name: null,
       is_confirmed: data.is_confirmed,
       reminder_sent: false,
-      created_by: 'current-user',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      created_by: data.assigned_to // Por enquanto, usando o assigned_to como created_by
     };
 
-    // Adiciona aos dados simulados
-    mockAppointments.push(newAppointment);
-    
+    const { data: newAppointment, error } = await supabase
+      .from('appointments')
+      .insert(appointmentData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Erro ao criar compromisso:', error);
+      throw error;
+    }
+
     return newAppointment;
   } catch (error) {
     console.error('Erro ao criar compromisso:', error);
@@ -152,22 +111,28 @@ export const updateAppointment = async (id: string, data: Partial<AppointmentFor
   try {
     console.log('Atualizando compromisso:', id, data);
     
-    // Por enquanto, simula a atualização
-    const appointmentIndex = mockAppointments.findIndex(app => app.id === id);
-    if (appointmentIndex === -1) {
-      throw new Error('Compromisso não encontrado');
+    const updateData: any = { ...data };
+    
+    if (data.start_time) {
+      updateData.start_time = data.start_time.toISOString();
+    }
+    
+    if (data.end_time) {
+      updateData.end_time = data.end_time.toISOString();
     }
 
-    const updatedAppointment: Appointment = {
-      ...mockAppointments[appointmentIndex],
-      ...data,
-      start_time: data.start_time ? data.start_time.toISOString() : mockAppointments[appointmentIndex].start_time,
-      end_time: data.end_time ? data.end_time.toISOString() : mockAppointments[appointmentIndex].end_time,
-      updated_at: new Date().toISOString()
-    };
+    const { data: updatedAppointment, error } = await supabase
+      .from('appointments')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
 
-    mockAppointments[appointmentIndex] = updatedAppointment;
-    
+    if (error) {
+      console.error('Erro ao atualizar compromisso:', error);
+      throw error;
+    }
+
     return updatedAppointment;
   } catch (error) {
     console.error('Erro ao atualizar compromisso:', error);
@@ -179,13 +144,15 @@ export const deleteAppointment = async (id: string): Promise<void> => {
   try {
     console.log('Excluindo compromisso:', id);
     
-    // Por enquanto, simula a exclusão
-    const appointmentIndex = mockAppointments.findIndex(app => app.id === id);
-    if (appointmentIndex === -1) {
-      throw new Error('Compromisso não encontrado');
-    }
+    const { error } = await supabase
+      .from('appointments')
+      .delete()
+      .eq('id', id);
 
-    mockAppointments.splice(appointmentIndex, 1);
+    if (error) {
+      console.error('Erro ao excluir compromisso:', error);
+      throw error;
+    }
   } catch (error) {
     console.error('Erro ao excluir compromisso:', error);
     throw error;
